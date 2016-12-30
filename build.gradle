@@ -1,0 +1,57 @@
+plugins {
+    id 'pl.allegro.tech.build.axion-release' version '1.4.1'
+}
+
+scmVersion {
+    tag {
+        prefix = 'granite-rest'
+    }
+
+    versionCreator 'versionWithBranch'
+}
+
+ext.deps = [
+        jacksonVersion       : '2.7.6',
+        graniteVersion       : '0.1.35',
+        msgPackVersion       : '0.8.11',
+        nettyVersion         : '4.0.36.Final'
+]
+
+subprojects {
+
+    group 'org.granite'
+
+    version = scmVersion.version
+
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenLocal()
+
+        mavenCentral()
+    }
+
+    dependencies {
+        compile 'com.google.guava:guava:19.0'
+        testCompile 'junit:junit:4.12'
+    }
+
+}
+
+project(':granite-rest') {
+    dependencies {
+        compile 'org.granite:granite-base:' + deps.graniteVersion
+        compile 'com.fasterxml.jackson.core:jackson-annotations:' + deps.jacksonVersion
+        compile 'com.fasterxml.jackson.core:jackson-core:' + deps.jacksonVersion
+        compile 'com.fasterxml.jackson.core:jackson-databind:' + deps.jacksonVersion
+        compile 'org.msgpack:msgpack-core:' + deps.msgPackVersion
+        compile 'org.msgpack:jackson-dataformat-msgpack:' + deps.msgPackVersion
+        compile 'io.netty:netty-all:' + deps.nettyVersion
+    }
+
+}
+
+

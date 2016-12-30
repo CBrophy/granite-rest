@@ -10,3 +10,19 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# idea cruft
+.idea
+classes/
+
+# build files
+.gradle
+gradlew.bat
+gradle
+build
+
+# local configs
+local-*properties
+
+# node modules
+node_modules
