@@ -18,5 +18,5 @@ public abstract class RESTChannelInitializer extends ChannelInitializer<SocketCh
                 .addLast(getInboundRequestHandlerInstance());
     }
 
-    abstract InboundRequestHandler getInboundRequestHandlerInstance();
+    protected abstract InboundRequestHandler getInboundRequestHandlerInstance();
 }
