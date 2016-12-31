@@ -14,7 +14,7 @@ ext.deps = [
         jacksonVersion       : '2.7.6',
         graniteVersion       : '0.1.35',
         msgPackVersion       : '0.8.11',
-        nettyVersion         : '4.0.36.Final'
+        nettyVersion         : '4.0.42.Final'
 ]
 
 subprojects {
