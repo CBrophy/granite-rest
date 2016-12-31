@@ -61,7 +61,6 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
             final List<ContentTypeSerializer<V>> serializers
     ) {
         checkNotNull(serializers, "serializers");
-        checkArgument(serializers.size() > 0, "No serializers provided to request handler");
 
         this.itemProvider = checkNotNull(itemProvider, "itemProvider");
 
