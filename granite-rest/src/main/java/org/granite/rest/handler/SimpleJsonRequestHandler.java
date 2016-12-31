@@ -125,9 +125,11 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
     private List<V> sortAndPage(final List<V> items, final RequestContext requestContext) {
         if (items == null || items.isEmpty()) return ImmutableList.of();
 
-        boolean sortDescending = getSortDescending(requestContext);
+        if(items.size() > 1) {
+            boolean sortDescending = getSortDescending(requestContext);
 
-        items.sort(sortDescending ? Ordering.natural().reverse() : Ordering.natural());
+            items.sort(sortDescending ? Ordering.natural().reverse() : Ordering.natural());
+        }
 
         final Integer pageNum = getPageNum(requestContext);
 
