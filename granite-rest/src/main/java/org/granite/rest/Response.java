@@ -13,6 +13,7 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -30,6 +31,14 @@ public class Response {
         return  createResponse(
                 "NOT ALLOWED".getBytes(),
                 METHOD_NOT_ALLOWED,
+                ContentType.TextPlain
+                        .getText());
+    }
+
+    public static HttpResponse FORBIDDEN(){
+        return  createResponse(
+                "FORBIDDEN".getBytes(),
+                FORBIDDEN,
                 ContentType.TextPlain
                         .getText());
     }

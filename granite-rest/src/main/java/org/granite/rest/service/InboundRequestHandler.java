@@ -3,6 +3,7 @@ package org.granite.rest.service;
 import com.google.common.base.Throwables;
 
 import org.granite.log.LogTools;
+import org.granite.rest.ExtendedHeader;
 import org.granite.rest.Response;
 import org.granite.rest.model.RequestContext;
 import org.granite.rest.model.RequestHandler;
@@ -26,14 +27,25 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
     private final Function<RequestContext, RequestHandler> handlerFromContextFunction;
     private boolean muteSSLErrors = false;
+    private final Function<String, Boolean> requestIdValidationFunction;
 
     public InboundRequestHandler(
             final Function<RequestContext, RequestHandler> handlerFromContextFunction
+    ) {
+        this(handlerFromContextFunction, requestId -> true);
+    }
+
+
+    public InboundRequestHandler(
+            final Function<RequestContext, RequestHandler> handlerFromContextFunction,
+            final Function<String, Boolean> requestIdValidationFunction
     ) {
         super(true);
 
         this.handlerFromContextFunction = checkNotNull(handlerFromContextFunction,
                                                        "handlerFromContextFunction");
+        this.requestIdValidationFunction = checkNotNull(requestIdValidationFunction,
+                                                        "requestIdValidationFunction");
     }
 
     @Override
@@ -46,10 +58,21 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
             try {
                 final RequestContext requestContext = new RequestContext(httpRequest);
 
-                httpResponse = dispatchRequest(
-                        httpRequest.getMethod(),
-                        requestContext,
-                        handlerFromContextFunction.apply(requestContext));
+                if (!requestIdValidationFunction.apply(
+                        requestContext
+                                .getHttpHeaders()
+                                .get(ExtendedHeader.RequestId.getHeaderKey())
+                )) {
+
+                    httpResponse = Response.FORBIDDEN();
+
+                } else {
+
+                    httpResponse = dispatchRequest(
+                            httpRequest.getMethod(),
+                            requestContext,
+                            handlerFromContextFunction.apply(requestContext));
+                }
 
             } catch (Exception ignored) {
 
