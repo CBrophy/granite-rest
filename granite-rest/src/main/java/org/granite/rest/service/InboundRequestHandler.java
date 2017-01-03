@@ -3,7 +3,7 @@ package org.granite.rest.service;
 import com.google.common.base.Throwables;
 
 import org.granite.log.LogTools;
-import org.granite.rest.RESTTools;
+import org.granite.rest.Response;
 import org.granite.rest.model.RequestContext;
 import org.granite.rest.model.RequestHandler;
 
@@ -55,11 +55,11 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
                 LogTools.error(Throwables.getStackTraceAsString(ignored));
 
-                httpResponse = RESTTools.INTERNAL_ERROR_RESPONSE;
+                httpResponse = Response.INTERNAL_ERROR();
             }
 
             if (httpResponse == null) {
-                httpResponse = RESTTools.NOT_FOUND_RESPONSE;
+                httpResponse = Response.NOT_FOUND();
             }
 
             if (HttpHeaders.isKeepAlive(httpRequest)) {
@@ -67,7 +67,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
             }
 
             if (HttpHeaders.is100ContinueExpected(httpRequest)) {
-                ctx.write(RESTTools.CONTINUE_RESPONSE);
+                ctx.writeAndFlush(Response.CONTINUE());
             }
 
             ctx.writeAndFlush(httpResponse);
@@ -100,7 +100,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
             return requestHandler.handleDelete(requestContext);
         }
 
-        return RESTTools.METHOD_NOT_ALLOWED_RESPONSE;
+        return Response.METHOD_NOT_ALLOWED();
 
     }
 

@@ -20,37 +20,56 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_IMPLEMENTED;
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
-public class RESTTools {
-    public final static HttpResponse NO_CONTENT_RESPONSE = createResponse(
-            new byte[]{},
-            NO_CONTENT,
-            ContentType.TextPlain.getText());
-    public final static HttpResponse BAD_REQUEST_RESPONSE = createResponse(
-            "BAD REQUEST".getBytes(),
-            BAD_REQUEST,
-            ContentType.TextPlain.getText());
-    public final static HttpResponse NOT_FOUND_RESPONSE = createResponse(
-            "NOT FOUND".getBytes(),
-            NOT_FOUND,
-            ContentType.TextPlain.getText());
-    public final static HttpResponse NOT_IMPLEMENTED_RESPONSE = createResponse(
-            "NOT IMPLEMENTED".getBytes(),
-            NOT_IMPLEMENTED,
-            ContentType.TextPlain
-                    .getText());
-    public final static HttpResponse INTERNAL_ERROR_RESPONSE = createResponse(
-            "INTERNAL ERROR".getBytes(),
-            INTERNAL_SERVER_ERROR,
-            ContentType.TextPlain
-                    .getText());
-    public final static HttpResponse METHOD_NOT_ALLOWED_RESPONSE = createResponse(
-            "NOT ALLOWED".getBytes(),
-            METHOD_NOT_ALLOWED,
-            ContentType.TextPlain
-                    .getText());
+public class Response {
 
-    public final static HttpResponse CONTINUE_RESPONSE = new DefaultFullHttpResponse(HTTP_1_1,
-                                                                                     CONTINUE);
+    public static HttpResponse CONTINUE(){
+        return new DefaultFullHttpResponse(HTTP_1_1,CONTINUE);
+    }
+
+    public static HttpResponse METHOD_NOT_ALLOWED(){
+        return  createResponse(
+                "NOT ALLOWED".getBytes(),
+                METHOD_NOT_ALLOWED,
+                ContentType.TextPlain
+                        .getText());
+    }
+
+    public static HttpResponse INTERNAL_ERROR(){
+        return createResponse(
+                "INTERNAL ERROR".getBytes(),
+                INTERNAL_SERVER_ERROR,
+                ContentType.TextPlain
+                        .getText());
+    }
+
+    public static HttpResponse NOT_IMPLEMENTED(){
+        return createResponse(
+                "NOT IMPLEMENTED".getBytes(),
+                NOT_IMPLEMENTED,
+                ContentType.TextPlain
+                        .getText());
+    }
+
+    public static HttpResponse NOT_FOUND(){
+        return createResponse(
+                "NOT FOUND".getBytes(),
+                NOT_FOUND,
+                ContentType.TextPlain.getText());
+    }
+
+    public static HttpResponse BAD_REQUEST(){
+        return createResponse(
+                "BAD REQUEST".getBytes(),
+                BAD_REQUEST,
+                ContentType.TextPlain.getText());
+    }
+
+    public static HttpResponse NO_CONTENT(){
+        return createResponse(
+                new byte[]{},
+                NO_CONTENT,
+                ContentType.TextPlain.getText());
+    }
 
     public static DefaultHttpResponse createResponse(
             final byte[] responseBody,

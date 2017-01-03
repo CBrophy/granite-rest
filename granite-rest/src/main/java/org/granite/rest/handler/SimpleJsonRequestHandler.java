@@ -10,7 +10,7 @@ import com.google.common.primitives.Ints;
 
 import org.granite.collections.ListTools;
 import org.granite.rest.ExtendedHeader;
-import org.granite.rest.RESTTools;
+import org.granite.rest.Response;
 import org.granite.rest.handler.serialzation.ContentTypeSerializer;
 import org.granite.rest.handler.serialzation.JsonSerializer;
 import org.granite.rest.model.ItemProvider;
@@ -88,7 +88,7 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
             final V item = itemProvider.getOne(key, requestContext);
 
             if (item != null) {
-                return RESTTools.createResponse(
+                return Response.createResponse(
                         serializer.serializeOne(item),
                         HttpResponseStatus.OK,
                         serializer.getContentType()
@@ -102,7 +102,7 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
             if (items != null) {
 
-                final DefaultHttpResponse response = RESTTools.createResponse(
+                final DefaultHttpResponse response = Response.createResponse(
                         serializer.serializeMany(
                                 sortAndPage(items.getResponseValues(), requestContext)
                         ),
@@ -119,7 +119,7 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
             }
         }
 
-        return RESTTools.NOT_FOUND_RESPONSE;
+        return Response.NOT_FOUND();
     }
 
     private List<V> sortAndPage(final List<V> items, final RequestContext requestContext) {
@@ -155,14 +155,14 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         );
 
         if (item == null) {
-            return RESTTools.BAD_REQUEST_RESPONSE;
+            return Response.BAD_REQUEST();
         }
 
         final UpdateResult<K> result = itemProvider.insert(item, requestContext);
 
         checkState(result.isSuccessful(), result.getMessage());
 
-        return RESTTools.NO_CONTENT_RESPONSE;
+        return Response.NO_CONTENT();
     }
 
     @Override
@@ -176,18 +176,18 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         );
 
         if (item == null) {
-            return RESTTools.BAD_REQUEST_RESPONSE;
+            return Response.BAD_REQUEST();
         }
 
         final UpdateResult<K> result = itemProvider.update(key, item, requestContext);
 
         if (!result.keyExists()) {
-            return RESTTools.NOT_FOUND_RESPONSE;
+            return Response.NOT_FOUND();
         }
 
         checkState(result.isSuccessful(), result.getMessage());
 
-        return RESTTools.NO_CONTENT_RESPONSE;
+        return Response.NO_CONTENT();
     }
 
     @Override
@@ -196,18 +196,18 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         final K key = keyFromRequestPath(requestContext.getRequestPath());
 
         if (key == null) {
-            return RESTTools.BAD_REQUEST_RESPONSE;
+            return Response.BAD_REQUEST();
         }
 
         final UpdateResult<K> result = itemProvider.delete(key, requestContext);
 
         if (!result.keyExists()) {
-            return RESTTools.NOT_FOUND_RESPONSE;
+            return Response.NOT_FOUND();
         }
 
         checkState(result.isSuccessful(), result.getMessage());
 
-        return RESTTools.NO_CONTENT_RESPONSE;
+        return Response.NO_CONTENT();
     }
 
     private HashMap<String, ContentTypeSerializer<V>> getContentTypeSerializers() {
