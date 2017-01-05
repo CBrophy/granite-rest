@@ -52,6 +52,10 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
     protected void channelRead0(ChannelHandlerContext ctx,
                                 HttpRequest httpRequest) throws Exception {
 
+        RESTService.incrementRequestCount();
+
+        RESTService.incrementCounter(httpRequest.getMethod().name());
+
         try {
             HttpResponse httpResponse = null;
 
@@ -72,6 +76,11 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                             httpRequest.getMethod(),
                             requestContext,
                             handlerFromContextFunction.apply(requestContext));
+
+                    // If these numbers are being reported, the current
+                    // request should not corrupt the response generated
+                    // by the handler
+                    RESTService.setLastRequestTime();
                 }
 
             } catch (Exception ignored) {
@@ -79,6 +88,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 LogTools.error(Throwables.getStackTraceAsString(ignored));
 
                 httpResponse = Response.INTERNAL_ERROR();
+
             }
 
             if (httpResponse == null) {
@@ -93,9 +103,15 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 ctx.writeAndFlush(Response.CONTINUE());
             }
 
+            RESTService.incrementResponseCount();
+
+            RESTService.incrementCounter(String.valueOf(httpResponse.getStatus()));
+
             ctx.writeAndFlush(httpResponse);
         } catch (Exception ignored) {
             LogTools.error(Throwables.getStackTraceAsString(ignored));
+
+            RESTService.incrementHiddenErrorCount();
         }
 
     }
