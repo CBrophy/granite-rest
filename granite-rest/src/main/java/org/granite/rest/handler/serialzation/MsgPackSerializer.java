@@ -6,7 +6,7 @@ import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 public class MsgPackSerializer<V> extends ContentTypeSerializer<V> {
 
-    protected MsgPackSerializer(final Class<V> itemClass) {
+    public MsgPackSerializer(final Class<V> itemClass) {
         super(new ObjectMapper(new MessagePackFactory()), itemClass);
     }
 
