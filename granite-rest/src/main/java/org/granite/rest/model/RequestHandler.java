@@ -9,4 +9,6 @@ public interface RequestHandler {
     HttpResponse handlePut(final RequestContext requestContext);
     HttpResponse handleDelete(final RequestContext requestContext);
     String getRootPath();
+    HttpResponse isHealthy(final RequestContext requestContext);
+    boolean isHealthCheck(final RequestContext requestContext);
 }

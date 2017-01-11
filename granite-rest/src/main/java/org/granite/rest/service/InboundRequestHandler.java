@@ -60,6 +60,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
             HttpResponse httpResponse = null;
 
             try {
+
                 final RequestContext requestContext = new RequestContext(httpRequest);
 
                 if (!apiKeyValidationFunction.apply(
@@ -136,7 +137,13 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
         if (requestContext == null || requestHandler == null) return null;
 
         if (httpMethod == HttpMethod.GET) {
-            return requestHandler.handleGet(requestContext);
+
+            if (requestHandler.isHealthCheck(requestContext)) {
+                return requestHandler.isHealthy(requestContext);
+            } else {
+                return requestHandler.handleGet(requestContext);
+            }
+
         }
 
         if (httpMethod == HttpMethod.POST) {
