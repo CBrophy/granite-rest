@@ -110,8 +110,9 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
                         serializer.getContentType()
                 );
 
-                response.headers().add(
-                        ExtendedHeader.TotalCount.getHeaderKey(),
+                ExtendedHeader.setHeader(
+                        response,
+                        ExtendedHeader.TotalCount,
                         items.getTotalCount()
                 );
 

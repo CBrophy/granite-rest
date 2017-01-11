@@ -27,7 +27,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
     private final Function<RequestContext, RequestHandler> handlerFromContextFunction;
     private boolean muteSSLErrors = false;
-    private final Function<String, Boolean> requestIdValidationFunction;
+    private final Function<String, Boolean> apiKeyValidationFunction;
 
     public InboundRequestHandler(
             final Function<RequestContext, RequestHandler> handlerFromContextFunction
@@ -38,14 +38,14 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
     public InboundRequestHandler(
             final Function<RequestContext, RequestHandler> handlerFromContextFunction,
-            final Function<String, Boolean> requestIdValidationFunction
+            final Function<String, Boolean> apiKeyValidationFunction
     ) {
         super(true);
 
         this.handlerFromContextFunction = checkNotNull(handlerFromContextFunction,
                                                        "handlerFromContextFunction");
-        this.requestIdValidationFunction = checkNotNull(requestIdValidationFunction,
-                                                        "requestIdValidationFunction");
+        this.apiKeyValidationFunction = checkNotNull(apiKeyValidationFunction,
+                                                     "apiKeyValidationFunction");
     }
 
     @Override
@@ -62,10 +62,10 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
             try {
                 final RequestContext requestContext = new RequestContext(httpRequest);
 
-                if (!requestIdValidationFunction.apply(
+                if (!apiKeyValidationFunction.apply(
                         requestContext
                                 .getHttpHeaders()
-                                .get(ExtendedHeader.RequestId.getHeaderKey())
+                                .get(ExtendedHeader.ApiKey.getHeaderKey())
                 )) {
 
                     httpResponse = Response.FORBIDDEN();
@@ -101,6 +101,18 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
             if (HttpHeaders.is100ContinueExpected(httpRequest)) {
                 ctx.writeAndFlush(Response.CONTINUE());
+            }
+
+            final Object requestId = ExtendedHeader.getHeaderValue(
+                    httpRequest,
+                    ExtendedHeader.RequestId);
+
+            if (requestId != null) {
+                ExtendedHeader.setHeader(
+                        httpResponse,
+                        ExtendedHeader.RequestId,
+                        requestId
+                );
             }
 
             RESTService.incrementResponseCount();
