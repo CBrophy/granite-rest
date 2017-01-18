@@ -363,5 +363,30 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
     }
 
+    @Override
+    public boolean isHealthCheck(RequestContext requestContext) {
+        return requestContext.getRequestPath().size() > 1 &&
+                "health-check".equalsIgnoreCase(requestContext.getRequestPath().get(1));
+    }
 
+    @Override
+    public HttpResponse isHealthy(RequestContext requestContext) {
+
+        try {
+
+            doHealthCheck(requestContext);
+
+        } catch (Exception e) {
+            LogTools.error(Throwables.getStackTraceAsString(e));
+            return Response.INTERNAL_ERROR();
+        }
+
+        return Response.createResponse(
+                "HEALTHY".getBytes(),
+                HttpResponseStatus.OK,
+                ContentType.TextPlain.getText()
+        );
+    }
+
+    protected abstract void doHealthCheck(final RequestContext requestContext);
 }
