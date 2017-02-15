@@ -1,21 +1,20 @@
 package org.granite.rest.model;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
-
-import java.time.Clock;
-import java.util.List;
-
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.time.Clock;
+import java.util.List;
 
 public class RequestContext {
+
     private final ImmutableList<String> requestPath;
     private final long timestamp;
     private final ImmutableMultimap<String, String> queryStringParameters;
@@ -23,12 +22,13 @@ public class RequestContext {
     private final byte[] requestBody;
 
     public RequestContext(
-            final HttpRequest httpRequest
+        final HttpRequest httpRequest
     ) {
         checkNotNull(httpRequest, "httpRequest");
         this.requestPath = extractRequestPath(httpRequest);
         this.queryStringParameters = extractQueryString(httpRequest);
-        this.httpHeaders = httpRequest.headers() == null? new DefaultHttpHeaders() : httpRequest.headers();
+        this.httpHeaders =
+            httpRequest.headers() == null ? new DefaultHttpHeaders() : httpRequest.headers();
         this.requestBody = extractRequestBody(httpRequest);
         this.timestamp = Clock.systemUTC().millis();
     }
@@ -64,15 +64,17 @@ public class RequestContext {
 
         final List<String> uriParts = questionSplitter.splitToList(httpRequest.getUri());
 
-        if (uriParts.isEmpty()) return ImmutableList.of();
+        if (uriParts.isEmpty()) {
+            return ImmutableList.of();
+        }
 
         // ignore first parameter
         slashSplitter
-                .splitToList(uriParts.get(0))
-                .stream()
-                .skip(1)
-                .map(String::toLowerCase)
-                .forEach(builder::add);
+            .splitToList(uriParts.get(0))
+            .stream()
+            .skip(1)
+            .map(String::toLowerCase)
+            .forEach(builder::add);
 
         return builder.build();
     }
@@ -81,14 +83,15 @@ public class RequestContext {
     protected static byte[] extractRequestBody(final HttpRequest httpRequest) {
         checkNotNull(httpRequest, "httpRequest");
 
-        if (httpRequest instanceof FullHttpRequest) {
-            return ((FullHttpRequest) httpRequest).content().array();
+        if (httpRequest instanceof FullHttpRequest && ((FullHttpRequest) httpRequest).content().hasArray()) {
+                return ((FullHttpRequest) httpRequest).content().array();
         }
 
         return new byte[]{};
     }
 
-    private static ImmutableMultimap<String, String> extractQueryString(final HttpRequest httpRequest) {
+    private static ImmutableMultimap<String, String> extractQueryString(
+        final HttpRequest httpRequest) {
         checkNotNull(httpRequest, "httpRequest");
 
         final ImmutableMultimap.Builder<String, String> builder = ImmutableMultimap.builder();
@@ -96,9 +99,10 @@ public class RequestContext {
         final QueryStringDecoder queryStringDecoder = new QueryStringDecoder(httpRequest.getUri());
 
         queryStringDecoder
-                .parameters()
-                .keySet()
-                .forEach(key -> builder.putAll(key.toLowerCase(), queryStringDecoder.parameters().get(key)));
+            .parameters()
+            .keySet()
+            .forEach(
+                key -> builder.putAll(key.toLowerCase(), queryStringDecoder.parameters().get(key)));
 
         return builder.build();
     }
