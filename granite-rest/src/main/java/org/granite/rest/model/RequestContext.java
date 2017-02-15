@@ -83,8 +83,16 @@ public class RequestContext {
     protected static byte[] extractRequestBody(final HttpRequest httpRequest) {
         checkNotNull(httpRequest, "httpRequest");
 
-        if (httpRequest instanceof FullHttpRequest && ((FullHttpRequest) httpRequest).content().hasArray()) {
+        if (httpRequest instanceof FullHttpRequest) {
+            if (((FullHttpRequest) httpRequest).content().hasArray()) {
                 return ((FullHttpRequest) httpRequest).content().array();
+            }
+
+            final byte[] buf = new byte[((FullHttpRequest) httpRequest).content().readableBytes()];
+
+            ((FullHttpRequest) httpRequest).content().readBytes(buf);
+
+            return buf;
         }
 
         return new byte[]{};
