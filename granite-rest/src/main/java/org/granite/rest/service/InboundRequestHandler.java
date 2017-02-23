@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 
 public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpRequest> {
@@ -28,6 +29,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
     private final Function<RequestContext, RequestHandler> handlerFromContextFunction;
     private boolean muteSSLErrors = false;
     private final Function<String, Boolean> apiKeyValidationFunction;
+    private boolean corsEnabled = false;
 
     public InboundRequestHandler(
             final Function<RequestContext, RequestHandler> handlerFromContextFunction
@@ -98,6 +100,10 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
             if (HttpHeaders.isKeepAlive(httpRequest)) {
                 httpResponse.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            }
+
+            if(corsEnabled){
+                httpResponse.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
             }
 
             if (HttpHeaders.is100ContinueExpected(httpRequest)) {
@@ -187,6 +193,15 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
     public InboundRequestHandler withMuteSSLErrors(final boolean muteSSLErrors) {
         this.muteSSLErrors = muteSSLErrors;
         return this;
+    }
+
+    public InboundRequestHandler withCorsEnabled(final boolean corsEnabled) {
+        this.corsEnabled = corsEnabled;
+        return this;
+    }
+
+    public boolean isCorsEnabled() {
+        return corsEnabled;
     }
 
     public boolean muteSSLErrors() {
