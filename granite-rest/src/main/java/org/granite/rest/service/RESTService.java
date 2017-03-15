@@ -1,22 +1,19 @@
 package org.granite.rest.service;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Throwables;
-
-import org.granite.log.LogTools;
-
-import java.time.Clock;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.time.Clock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import org.granite.log.LogTools;
 
 public class RESTService {
 
@@ -26,13 +23,13 @@ public class RESTService {
     public static final ConcurrentHashMap<String, AtomicLong> COUNTER_MAP = new ConcurrentHashMap<>();
 
     public RESTService(
-            final int port,
-            final RESTChannelInitializer restChannelInitializer
+        final int port,
+        final RESTChannelInitializer restChannelInitializer
     ) {
         checkArgument(port > 0, "port must be a positive integer");
         this.port = port;
         this.restChannelInitializer = checkNotNull(restChannelInitializer,
-                                                   "restChannelInitializer");
+            "restChannelInitializer");
 
         for (ServiceCounters serviceCounter : ServiceCounters.values()) {
             COUNTER_MAP.computeIfAbsent(serviceCounter.name(), key -> new AtomicLong());
@@ -48,21 +45,21 @@ public class RESTService {
         try {
 
             setCounter(
-                    ServiceCounters.StartTimestamp,
-                    Clock.systemUTC().millis());
+                ServiceCounters.StartTimestamp,
+                Clock.systemUTC().millis());
 
             ServerBootstrap serverBootstrap = new ServerBootstrap();
 
             serverBootstrap
-                    .group(parentGroup, childGroup)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .channel(NioServerSocketChannel.class)
-                    .childHandler(this.restChannelInitializer);
+                .group(parentGroup, childGroup)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .channel(NioServerSocketChannel.class)
+                .childHandler(this.restChannelInitializer);
 
             channel = serverBootstrap
-                    .bind(port)
-                    .sync()
-                    .channel();
+                .bind(port)
+                .sync()
+                .channel();
 
             LogTools.info("Server now listening on port: {0}", String.valueOf(port));
 
@@ -75,22 +72,22 @@ public class RESTService {
         }
     }
 
-    public static void incrementHiddenErrorCount(){
+    public static void incrementHiddenErrorCount() {
         incrementCounter(ServiceCounters.HiddenErrors);
     }
 
-    public static void incrementRequestCount(){
+    public static void incrementRequestCount() {
         incrementCounter(ServiceCounters.Requests);
     }
 
-    public static void incrementResponseCount(){
+    public static void incrementResponseCount() {
         incrementCounter(ServiceCounters.Responses);
     }
 
-    public static void setLastRequestTime(){
+    public static void setLastRequestTime() {
         setCounter(
-                ServiceCounters.LastRequestTimestamp,
-                Clock.systemUTC().millis());
+            ServiceCounters.LastRequestTimestamp,
+            Clock.systemUTC().millis());
 
     }
 
@@ -98,25 +95,26 @@ public class RESTService {
         incrementCounter(serviceCounter.name());
     }
 
-    public static void incrementCounter(String counter){
+    public static void incrementCounter(String counter) {
         COUNTER_MAP
-                .computeIfAbsent(
-                        counter,
-                        key -> new AtomicLong(0)
-                )
-                .getAndIncrement();
+            .computeIfAbsent(
+                counter,
+                key -> new AtomicLong(0)
+            )
+            .getAndIncrement();
     }
 
-    public static void setCounter(ServiceCounters serviceCounter, long value){
+    public static void setCounter(ServiceCounters serviceCounter, long value) {
         setCounter(serviceCounter.name(), value);
     }
-    public static void setCounter(String counter, long value){
+
+    public static void setCounter(String counter, long value) {
         COUNTER_MAP
-                .computeIfAbsent(
-                        counter,
-                        key -> new AtomicLong(0)
-                )
-                .set(value);
+            .computeIfAbsent(
+                counter,
+                key -> new AtomicLong(0)
+            )
+            .set(value);
     }
 
     public void shutdown() {

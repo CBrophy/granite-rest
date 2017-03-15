@@ -1,17 +1,10 @@
 package org.granite.rest.service;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+
 import com.google.common.base.Throwables;
-
-import org.granite.log.LogTools;
-import org.granite.rest.ExtendedHeader;
-import org.granite.rest.Response;
-import org.granite.rest.model.RequestContext;
-import org.granite.rest.model.RequestHandler;
-
-import java.util.function.Function;
-
-import javax.net.ssl.SSLException;
-
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.DecoderException;
@@ -19,10 +12,13 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import java.util.function.Function;
+import javax.net.ssl.SSLException;
+import org.granite.log.LogTools;
+import org.granite.rest.ExtendedHeader;
+import org.granite.rest.Response;
+import org.granite.rest.model.RequestContext;
+import org.granite.rest.model.RequestHandler;
 
 public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpRequest> {
 
@@ -32,27 +28,27 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
     private boolean corsEnabled = false;
 
     public InboundRequestHandler(
-            final Function<RequestContext, RequestHandler> handlerFromContextFunction
+        final Function<RequestContext, RequestHandler> handlerFromContextFunction
     ) {
         this(handlerFromContextFunction, requestId -> true);
     }
 
 
     public InboundRequestHandler(
-            final Function<RequestContext, RequestHandler> handlerFromContextFunction,
-            final Function<String, Boolean> apiKeyValidationFunction
+        final Function<RequestContext, RequestHandler> handlerFromContextFunction,
+        final Function<String, Boolean> apiKeyValidationFunction
     ) {
         super(true);
 
         this.handlerFromContextFunction = checkNotNull(handlerFromContextFunction,
-                                                       "handlerFromContextFunction");
+            "handlerFromContextFunction");
         this.apiKeyValidationFunction = checkNotNull(apiKeyValidationFunction,
-                                                     "apiKeyValidationFunction");
+            "apiKeyValidationFunction");
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx,
-                                HttpRequest httpRequest) throws Exception {
+        HttpRequest httpRequest) throws Exception {
 
         RESTService.incrementRequestCount();
 
@@ -66,9 +62,9 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 final RequestContext requestContext = new RequestContext(httpRequest);
 
                 if (!apiKeyValidationFunction.apply(
-                        requestContext
-                                .getHttpHeaders()
-                                .get(ExtendedHeader.ApiKey.getHeaderKey())
+                    requestContext
+                        .getHttpHeaders()
+                        .get(ExtendedHeader.ApiKey.getHeaderKey())
                 )) {
 
                     httpResponse = Response.FORBIDDEN();
@@ -76,9 +72,9 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 } else {
 
                     httpResponse = dispatchRequest(
-                            httpRequest.getMethod(),
-                            requestContext,
-                            handlerFromContextFunction.apply(requestContext));
+                        httpRequest.getMethod(),
+                        requestContext,
+                        handlerFromContextFunction.apply(requestContext));
 
                     // If these numbers are being reported, the current
                     // request should not corrupt the response generated
@@ -102,7 +98,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 httpResponse.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
             }
 
-            if(corsEnabled){
+            if (corsEnabled) {
                 httpResponse.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
             }
 
@@ -111,14 +107,14 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
             }
 
             final Object requestId = ExtendedHeader.getHeaderValue(
-                    httpRequest,
-                    ExtendedHeader.RequestId);
+                httpRequest,
+                ExtendedHeader.RequestId);
 
             if (requestId != null) {
                 ExtendedHeader.setHeader(
-                        httpResponse,
-                        ExtendedHeader.RequestId,
-                        requestId
+                    httpResponse,
+                    ExtendedHeader.RequestId,
+                    requestId
                 );
             }
 
@@ -136,11 +132,13 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
     }
 
     private HttpResponse dispatchRequest(
-            final HttpMethod httpMethod,
-            final RequestContext requestContext,
-            final RequestHandler requestHandler) {
+        final HttpMethod httpMethod,
+        final RequestContext requestContext,
+        final RequestHandler requestHandler) {
 
-        if (requestContext == null || requestHandler == null) return null;
+        if (requestContext == null || requestHandler == null) {
+            return null;
+        }
 
         if (httpMethod == HttpMethod.GET) {
 

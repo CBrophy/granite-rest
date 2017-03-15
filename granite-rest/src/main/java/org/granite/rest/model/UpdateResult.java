@@ -1,6 +1,7 @@
 package org.granite.rest.model;
 
 public class UpdateResult<K> {
+
     private final K updateKey;
     private final boolean keyExists;
     private final boolean successful;

@@ -12,10 +12,10 @@ public abstract class RESTChannelInitializer extends ChannelInitializer<SocketCh
         ch.config().setKeepAlive(true);
 
         ch
-                .pipeline()
-                .addLast(new HttpServerCodec())
-                .addLast(new HttpObjectAggregator(1048576))
-                .addLast(getInboundRequestHandlerInstance());
+            .pipeline()
+            .addLast(new HttpServerCodec())
+            .addLast(new HttpObjectAggregator(1048576))
+            .addLast(getInboundRequestHandlerInstance());
     }
 
     protected abstract InboundRequestHandler getInboundRequestHandlerInstance();

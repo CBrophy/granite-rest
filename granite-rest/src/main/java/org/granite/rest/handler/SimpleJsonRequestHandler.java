@@ -1,5 +1,9 @@
 package org.granite.rest.handler;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -7,35 +11,28 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
-
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.granite.base.StringTools;
 import org.granite.collections.ListTools;
+import org.granite.log.LogTools;
 import org.granite.rest.ExtendedHeader;
 import org.granite.rest.Response;
 import org.granite.rest.handler.serialzation.ContentTypeSerializer;
 import org.granite.rest.handler.serialzation.JsonSerializer;
 import org.granite.rest.model.ItemProvider;
 import org.granite.rest.model.RequestContext;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.granite.base.StringTools;
-import org.granite.log.LogTools;
 import org.granite.rest.model.RequestHandler;
 import org.granite.rest.model.UpdateResult;
 
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
-public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends Comparable> implements RequestHandler {
+public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends Comparable> implements
+    RequestHandler {
 
     private final static String SORT_FIELD = "_sortField";
     private final static String SORT_DIR = "_sortDir";
@@ -51,23 +48,23 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
     private int defaultPerPage = 30;
 
     protected SimpleJsonRequestHandler(
-            final ItemProvider<K, V> itemProvider
+        final ItemProvider<K, V> itemProvider
     ) {
         this(itemProvider, ImmutableList.of());
     }
 
     protected SimpleJsonRequestHandler(
-            final ItemProvider<K, V> itemProvider,
-            final List<ContentTypeSerializer<V>> serializers
+        final ItemProvider<K, V> itemProvider,
+        final List<ContentTypeSerializer<V>> serializers
     ) {
         checkNotNull(serializers, "serializers");
 
         this.itemProvider = checkNotNull(itemProvider, "itemProvider");
 
         this.defaultSerializer =
-                new JsonSerializer<>(
-                        checkNotNull(itemProvider, "itemProvider").getItemClass()
-                );
+            new JsonSerializer<>(
+                checkNotNull(itemProvider, "itemProvider").getItemClass()
+            );
 
         for (ContentTypeSerializer<V> serializer : serializers) {
             if (!defaultSerializer.getContentType().equalsIgnoreCase(serializer.getContentType())) {
@@ -82,38 +79,38 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         final K key = keyFromRequestPath(requestContext.getRequestPath());
 
         final ContentTypeSerializer<V> serializer = findSerializer(ContentType.fromString(
-                requestContext.getHttpHeaders().get(HttpHeaders.Names.ACCEPT)));
+            requestContext.getHttpHeaders().get(HttpHeaders.Names.ACCEPT)));
 
         if (key != null) {
             final V item = itemProvider.getOne(key, requestContext);
 
             if (item != null) {
                 return Response.createResponse(
-                        serializer.serializeOne(item),
-                        HttpResponseStatus.OK,
-                        serializer.getContentType()
+                    serializer.serializeOne(item),
+                    HttpResponseStatus.OK,
+                    serializer.getContentType()
                 );
             }
         } else {
 
             final SubListResponse<V> items = itemProvider.getMany(
-                    getPropertyFilter(requestContext),
-                    requestContext);
+                getPropertyFilter(requestContext),
+                requestContext);
 
             if (items != null) {
 
                 final DefaultHttpResponse response = Response.createResponse(
-                        serializer.serializeMany(
-                                sortAndPage(items.getResponseValues(), requestContext)
-                        ),
-                        HttpResponseStatus.OK,
-                        serializer.getContentType()
+                    serializer.serializeMany(
+                        sortAndPage(items.getResponseValues(), requestContext)
+                    ),
+                    HttpResponseStatus.OK,
+                    serializer.getContentType()
                 );
 
                 ExtendedHeader.setHeader(
-                        response,
-                        ExtendedHeader.TotalCount,
-                        items.getTotalCount()
+                    response,
+                    ExtendedHeader.TotalCount,
+                    items.getTotalCount()
                 );
 
                 return response;
@@ -124,9 +121,11 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
     }
 
     private List<V> sortAndPage(final List<V> items, final RequestContext requestContext) {
-        if (items == null || items.isEmpty()) return ImmutableList.of();
+        if (items == null || items.isEmpty()) {
+            return ImmutableList.of();
+        }
 
-        if(items.size() > 1) {
+        if (items.size() > 1) {
             boolean sortDescending = getSortDescending(requestContext);
 
             items.sort(sortDescending ? Ordering.natural().reverse() : Ordering.natural());
@@ -138,9 +137,9 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
         if (pageNum != null) {
             return ListTools.sublistPaging(
-                    items,
-                    itemsPerPage,
-                    pageNum
+                items,
+                itemsPerPage,
+                pageNum
             );
         } else {
             return items;
@@ -150,9 +149,9 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
     @Override
     public HttpResponse handlePost(RequestContext requestContext) {
         final V item = deserializeRequestBody(
-                requestContext.getRequestBody(),
-                ContentType.fromString(
-                        requestContext.getHttpHeaders().get(HttpHeaders.Names.CONTENT_TYPE))
+            requestContext.getRequestBody(),
+            ContentType.fromString(
+                requestContext.getHttpHeaders().get(HttpHeaders.Names.CONTENT_TYPE))
         );
 
         if (item == null) {
@@ -171,9 +170,9 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         final K key = keyFromRequestPath(requestContext.getRequestPath());
 
         final V item = deserializeRequestBody(
-                requestContext.getRequestBody(),
-                ContentType.fromString(
-                        requestContext.getHttpHeaders().get(HttpHeaders.Names.CONTENT_TYPE))
+            requestContext.getRequestBody(),
+            ContentType.fromString(
+                requestContext.getHttpHeaders().get(HttpHeaders.Names.CONTENT_TYPE))
         );
 
         if (item == null) {
@@ -235,10 +234,12 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         checkNotNull(requestContext, "requestContext");
 
         final ImmutableCollection<String> sortFieldParameters = requestContext
-                .getQueryStringParameters()
-                .get(SORT_FIELD);
+            .getQueryStringParameters()
+            .get(SORT_FIELD);
 
-        if (sortFieldParameters == null || sortFieldParameters.isEmpty()) return null;
+        if (sortFieldParameters == null || sortFieldParameters.isEmpty()) {
+            return null;
+        }
 
         return Iterables.getFirst(sortFieldParameters, null);
     }
@@ -247,24 +248,26 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         checkNotNull(requestContext, "requestContext");
 
         final ImmutableCollection<String> sortDirectionParameters = requestContext
-                .getQueryStringParameters()
-                .get(SORT_DIR);
+            .getQueryStringParameters()
+            .get(SORT_DIR);
 
         // default to ascending
         return !(sortDirectionParameters == null ||
-                         SORT_DIR_ASC.equalsIgnoreCase(Iterables.getFirst(
-                                 sortDirectionParameters,
-                                 SORT_DIR_ASC)));
+            SORT_DIR_ASC.equalsIgnoreCase(Iterables.getFirst(
+                sortDirectionParameters,
+                SORT_DIR_ASC)));
     }
 
     private Integer getItemsPerPage(final RequestContext requestContext) {
         checkNotNull(requestContext, "requestContext");
 
         final ImmutableCollection<String> perPageParameters = requestContext
-                .getQueryStringParameters()
-                .get(PER_PAGE);
+            .getQueryStringParameters()
+            .get(PER_PAGE);
 
-        if (perPageParameters == null || perPageParameters.isEmpty()) return defaultPerPage;
+        if (perPageParameters == null || perPageParameters.isEmpty()) {
+            return defaultPerPage;
+        }
 
         final String perPageString = Iterables.getFirst(perPageParameters, "");
 
@@ -277,10 +280,12 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         checkNotNull(requestContext, "requestContext");
 
         final ImmutableCollection<String> pageParameters = requestContext
-                .getQueryStringParameters()
-                .get(PAGE);
+            .getQueryStringParameters()
+            .get(PAGE);
 
-        if (pageParameters == null || pageParameters.isEmpty()) return null;
+        if (pageParameters == null || pageParameters.isEmpty()) {
+            return null;
+        }
 
         final String pageString = Iterables.getFirst(pageParameters, null);
 
@@ -291,19 +296,23 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         checkNotNull(requestContext, "requestContext");
 
         ImmutableCollection<String> filtersParameters = requestContext
-                .getQueryStringParameters()
-                .get(FILTERS);
+            .getQueryStringParameters()
+            .get(FILTERS);
 
-        if (filtersParameters == null || filtersParameters.isEmpty()) return ImmutableMap.of();
+        if (filtersParameters == null || filtersParameters.isEmpty()) {
+            return ImmutableMap.of();
+        }
 
         final String filterJson = Iterables.getFirst(filtersParameters, "");
 
-        if (StringTools.isNullOrEmpty(filterJson)) return ImmutableMap.of();
+        if (StringTools.isNullOrEmpty(filterJson)) {
+            return ImmutableMap.of();
+        }
 
         try {
             final Map filterMap = getDefaultSerializer()
-                    .getObjectMapper()
-                    .readValue(filterJson, Map.class);
+                .getObjectMapper()
+                .readValue(filterJson, Map.class);
 
             final HashMap<String, String> results = new HashMap<>();
 
@@ -313,7 +322,9 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
                     final String key = ((String) keyObject).trim().toLowerCase();
 
-                    if (key.isEmpty()) continue;
+                    if (key.isEmpty()) {
+                        continue;
+                    }
 
                     results.put(key, String.valueOf(filterMap.get(keyObject)));
                 }
@@ -330,8 +341,10 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
 
     private V deserializeRequestBody(final Object requestBody,
-                                     final ContentType contentType) {
-        if (requestBody == null) return null;
+        final ContentType contentType) {
+        if (requestBody == null) {
+            return null;
+        }
 
         final ContentTypeSerializer<V> serializer = findSerializer(contentType);
 
@@ -347,7 +360,7 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
             }
 
             LogTools.info("Content type {0} not supported",
-                          contentType.getText());
+                contentType.getText());
 
         } catch (Exception e) {
             LogTools.error("Error deserializing reqest: {0}", Throwables.getStackTraceAsString(e));
@@ -358,15 +371,15 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
     private ContentTypeSerializer<V> findSerializer(final ContentType contentType) {
         return getContentTypeSerializers()
-                .getOrDefault(contentType.getText(),
-                              getDefaultSerializer());
+            .getOrDefault(contentType.getText(),
+                getDefaultSerializer());
 
     }
 
     @Override
     public boolean isHealthCheck(RequestContext requestContext) {
         return requestContext.getRequestPath().size() > 1 &&
-                "health-check".equalsIgnoreCase(requestContext.getRequestPath().get(1));
+            "health-check".equalsIgnoreCase(requestContext.getRequestPath().get(1));
     }
 
     @Override
@@ -382,9 +395,9 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         }
 
         return Response.createResponse(
-                "HEALTHY".getBytes(),
-                HttpResponseStatus.OK,
-                ContentType.TextPlain.getText()
+            "HEALTHY".getBytes(),
+            HttpResponseStatus.OK,
+            ContentType.TextPlain.getText()
         );
     }
 

@@ -11,10 +11,10 @@ scmVersion {
 }
 
 ext.deps = [
-        jacksonVersion       : '2.7.6',
-        graniteVersion       : '0.1.40',
-        msgPackVersion       : '0.8.11',
-        nettyVersion         : '4.0.44.Final'
+        jacksonVersion: '2.7.6',
+        graniteVersion: '0.1.40',
+        msgPackVersion: '0.8.11',
+        nettyVersion  : '4.0.44.Final'
 ]
 
 subprojects {

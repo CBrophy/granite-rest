@@ -3,6 +3,7 @@ package org.granite.rest.handler;
 import java.util.List;
 
 public class SubListResponse<V> {
+
     private final int totalCount;
     private final List<V> responseValues;
 

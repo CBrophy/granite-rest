@@ -8,7 +8,7 @@ public enum ContentType {
 
     private String text;
 
-    ContentType(final String text){
+    ContentType(final String text) {
         this.text = text;
     }
 
@@ -16,13 +16,15 @@ public enum ContentType {
         return text;
     }
 
-    public static ContentType fromString(final String contentTypeText){
-        if(contentTypeText == null) return Unknown;
+    public static ContentType fromString(final String contentTypeText) {
+        if (contentTypeText == null) {
+            return Unknown;
+        }
 
         final String trimmed = contentTypeText.trim();
 
         for (ContentType contentType : ContentType.values()) {
-            if(contentType.getText().equalsIgnoreCase(trimmed)){
+            if (contentType.getText().equalsIgnoreCase(trimmed)) {
                 return contentType;
             }
         }

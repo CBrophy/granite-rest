@@ -1,7 +1,6 @@
 package org.granite.rest.handler.serialzation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.msgpack.jackson.dataformat.MessagePackFactory;
 
 public class MsgPackSerializer<V> extends ContentTypeSerializer<V> {
