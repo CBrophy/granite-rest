@@ -139,8 +139,8 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         if (pageNum != null) {
             return ListTools.sublistPaging(
                     items,
-                    pageNum,
-                    itemsPerPage
+                    itemsPerPage,
+                    pageNum
             );
         } else {
             return items;
