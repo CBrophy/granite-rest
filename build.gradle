@@ -1,5 +1,5 @@
 plugins {
-    id 'pl.allegro.tech.build.axion-release' version '1.4.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.8.3'
 }
 
 scmVersion {
@@ -12,7 +12,7 @@ scmVersion {
 
 ext.deps = [
         jacksonVersion: '2.7.6',
-        graniteVersion: '0.1.40',
+        graniteVersion: '0.1.58',
         msgPackVersion: '0.8.11',
         nettyVersion  : '4.0.44.Final'
 ]
@@ -35,7 +35,7 @@ subprojects {
     }
 
     dependencies {
-        compile 'com.google.guava:guava:19.0'
+        compile 'com.google.guava:guava:21.0'
         testCompile 'junit:junit:4.12'
     }
 
