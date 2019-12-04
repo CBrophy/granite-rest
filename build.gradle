@@ -13,7 +13,7 @@ scmVersion {
 ext.deps = [
         jacksonVersion: '2.9.9',
         graniteVersion: '0.1.60',
-        msgPackVersion: '0.8.11',
+        msgPackVersion: '0.8.20',
         nettyVersion  : '4.1.43.Final'
 ]
 
