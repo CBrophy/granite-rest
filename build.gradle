@@ -1,5 +1,5 @@
 plugins {
-    id 'pl.allegro.tech.build.axion-release' version '1.8.3'
+    id 'pl.allegro.tech.build.axion-release' version '1.10.1'
 }
 
 scmVersion {
@@ -11,10 +11,10 @@ scmVersion {
 }
 
 ext.deps = [
-        jacksonVersion: '2.7.6',
-        graniteVersion: '0.1.58',
+        jacksonVersion: '2.9.9',
+        graniteVersion: '0.1.60',
         msgPackVersion: '0.8.11',
-        nettyVersion  : '4.0.44.Final'
+        nettyVersion  : '4.1.43.Final'
 ]
 
 subprojects {
@@ -26,7 +26,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
 
-    sourceCompatibility = 1.8
+    sourceCompatibility = 1.11
 
     repositories {
         mavenLocal()
@@ -35,7 +35,7 @@ subprojects {
     }
 
     dependencies {
-        compile 'com.google.guava:guava:21.0'
+        compile 'com.google.guava:guava:28.0-jre'
         testCompile 'junit:junit:4.12'
     }
 
