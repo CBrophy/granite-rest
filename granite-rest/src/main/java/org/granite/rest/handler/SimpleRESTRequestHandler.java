@@ -12,6 +12,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -31,7 +32,7 @@ import org.granite.rest.model.RequestContext;
 import org.granite.rest.model.RequestHandler;
 import org.granite.rest.model.UpdateResult;
 
-public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends Comparable> implements
+public abstract class SimpleRESTRequestHandler<K extends Comparable<K>, V extends Comparable<V>> implements
     RequestHandler {
 
     private final static String SORT_FIELD = "_sortField";
@@ -47,13 +48,13 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
     private int defaultPerPage = 30;
 
-    protected SimpleJsonRequestHandler(
+    protected SimpleRESTRequestHandler(
         final ItemProvider<K, V> itemProvider
     ) {
         this(itemProvider, ImmutableList.of());
     }
 
-    protected SimpleJsonRequestHandler(
+    protected SimpleRESTRequestHandler(
         final ItemProvider<K, V> itemProvider,
         final List<ContentTypeSerializer<V>> serializers
     ) {
@@ -79,7 +80,7 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         final K key = keyFromRequestPath(requestContext.getRequestPath());
 
         final ContentTypeSerializer<V> serializer = findSerializer(ContentType.fromString(
-            requestContext.getHttpHeaders().get(HttpHeaders.Names.ACCEPT)));
+            requestContext.getHttpHeaders().get(HttpHeaderNames.ACCEPT)));
 
         if (key != null) {
             final V item = itemProvider.getOne(key, requestContext);
@@ -148,10 +149,14 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
 
     @Override
     public HttpResponse handlePost(RequestContext requestContext) {
-        final V item = deserializeRequestBody(
-            requestContext.getRequestBody(),
-            ContentType.fromString(
-                requestContext.getHttpHeaders().get(HttpHeaders.Names.CONTENT_TYPE))
+
+        final ContentType contentType = RequestContextTools.findContentType(requestContext);
+
+        final ContentTypeSerializer<V> serializer = findSerializer(contentType);
+
+        final V item = RequestContextTools.deserializeRequestBody(
+            requestContext,
+            serializer
         );
 
         if (item == null) {
@@ -169,10 +174,13 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
     public HttpResponse handlePut(RequestContext requestContext) {
         final K key = keyFromRequestPath(requestContext.getRequestPath());
 
-        final V item = deserializeRequestBody(
-            requestContext.getRequestBody(),
-            ContentType.fromString(
-                requestContext.getHttpHeaders().get(HttpHeaders.Names.CONTENT_TYPE))
+        final ContentType contentType = RequestContextTools.findContentType(requestContext);
+
+        final ContentTypeSerializer<V> serializer = findSerializer(contentType);
+
+        final V item = RequestContextTools.deserializeRequestBody(
+            requestContext,
+            serializer
         );
 
         if (item == null) {
@@ -214,7 +222,7 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         return contentTypeSerializers;
     }
 
-    public SimpleJsonRequestHandler<K, V> withDefaultPerPage(final int perPage) {
+    public SimpleRESTRequestHandler<K, V> withDefaultPerPage(final int perPage) {
         checkArgument(perPage > 0, "defaultPerPage should be a positive number");
         this.defaultPerPage = perPage;
         return this;
@@ -337,36 +345,6 @@ public abstract class SimpleJsonRequestHandler<K extends Comparable, V extends C
         }
 
         return ImmutableMap.of();
-    }
-
-
-    private V deserializeRequestBody(final Object requestBody,
-        final ContentType contentType) {
-        if (requestBody == null) {
-            return null;
-        }
-
-        final ContentTypeSerializer<V> serializer = findSerializer(contentType);
-
-        try {
-            if (requestBody instanceof String) {
-
-                return serializer.deserializeOne(((String) requestBody).getBytes());
-
-            }
-
-            if (requestBody instanceof byte[]) {
-                return serializer.deserializeOne((byte[]) requestBody);
-            }
-
-            LogTools.info("Content type {0} not supported",
-                contentType.getText());
-
-        } catch (Exception e) {
-            LogTools.error("Error deserializing reqest: {0}", Throwables.getStackTraceAsString(e));
-        }
-
-        return null;
     }
 
     private ContentTypeSerializer<V> findSerializer(final ContentType contentType) {
