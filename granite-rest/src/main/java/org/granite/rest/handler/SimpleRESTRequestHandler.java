@@ -356,8 +356,12 @@ public abstract class SimpleRESTRequestHandler<K extends Comparable<K>, V extend
 
     @Override
     public boolean isHealthCheck(RequestContext requestContext) {
-        return requestContext.getRequestPath().size() > 1 &&
-            "health-check".equalsIgnoreCase(requestContext.getRequestPath().get(1));
+        for (String pathPart : requestContext.getRequestPath().reverse()) {
+            if("health-check".equalsIgnoreCase(pathPart)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -68,11 +68,9 @@ public class RequestContext {
             return ImmutableList.of();
         }
 
-        // ignore first parameter
         slashSplitter
             .splitToList(uriParts.get(0))
             .stream()
-            .skip(1)
             .map(String::toLowerCase)
             .forEach(builder::add);
 
