@@ -85,7 +85,7 @@ public abstract class SimpleRequestHandler<V> implements RequestHandler {
 
   }
 
-  protected abstract void consumePostBody(final V item);
+  protected abstract HttpResponse consumePostBody(final V item);
 
   @Override
   public HttpResponse handlePost(RequestContext requestContext) {
@@ -102,12 +102,11 @@ public abstract class SimpleRequestHandler<V> implements RequestHandler {
       return Response.BAD_REQUEST();
     }
 
-    consumePostBody(item);
+    return consumePostBody(item);
 
-    return Response.NO_CONTENT();
   }
 
-  protected abstract void consumePutBody(final V item);
+  protected abstract HttpResponse consumePutBody(final V item);
 
   @Override
   public HttpResponse handlePut(RequestContext requestContext) {
@@ -124,9 +123,8 @@ public abstract class SimpleRequestHandler<V> implements RequestHandler {
       return Response.BAD_REQUEST();
     }
 
-    consumePutBody(item);
+    return consumePutBody(item);
 
-    return Response.NO_CONTENT();
   }
 
   @Override
