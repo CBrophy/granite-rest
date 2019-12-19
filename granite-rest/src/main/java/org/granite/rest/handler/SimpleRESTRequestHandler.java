@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ import org.granite.rest.model.RequestContext;
 import org.granite.rest.model.RequestHandler;
 import org.granite.rest.model.UpdateResult;
 
-public abstract class SimpleRESTRequestHandler<K extends Comparable<K>, V extends Comparable<V>> implements
+public abstract class SimpleRESTRequestHandler<K, V> implements
     RequestHandler {
 
     private final static String SORT_FIELD = "_sortField";
@@ -121,15 +122,19 @@ public abstract class SimpleRESTRequestHandler<K extends Comparable<K>, V extend
         return Response.NOT_FOUND();
     }
 
+    protected abstract Comparator<V> getValueComparator();
+
     private List<V> sortAndPage(final List<V> items, final RequestContext requestContext) {
         if (items == null || items.isEmpty()) {
             return ImmutableList.of();
         }
 
+        Comparator<V> comparator = getValueComparator();
+
         if (items.size() > 1) {
             boolean sortDescending = getSortDescending(requestContext);
 
-            items.sort(sortDescending ? Ordering.natural().reverse() : Ordering.natural());
+            items.sort(sortDescending ? comparator.reversed() : comparator);
         }
 
         final Integer pageNum = getPageNum(requestContext);
