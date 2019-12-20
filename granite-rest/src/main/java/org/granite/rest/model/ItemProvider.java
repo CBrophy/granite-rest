@@ -1,5 +1,6 @@
 package org.granite.rest.model;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Map;
 import org.granite.rest.handler.SubListResponse;
 
@@ -16,5 +17,5 @@ public interface ItemProvider<K, V> {
 
     UpdateResult<K> delete(final K key, final RequestContext requestContext);
 
-    Class<V> getItemClass();
+    TypeReference<V> getItemClass();
 }

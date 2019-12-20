@@ -9,16 +9,17 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.List;
+import org.granite.base.ExceptionTools;
 
 public abstract class ContentTypeSerializer<V> {
 
     private final ObjectMapper objectMapper;
-    private final Class<V> itemClass;
+    private final TypeReference<V> itemClass;
     private final TypeReference<List<V>> listTypeReference;
 
     protected ContentTypeSerializer(
         final ObjectMapper objectMapper,
-        final Class<V> itemClass) {
+        final TypeReference<V> itemClass) {
         this.objectMapper = checkNotNull(objectMapper, "objectMapper");
         this.itemClass = checkNotNull(itemClass, "itemClass");
         this.listTypeReference = new TypeReference<List<V>>() {
@@ -59,7 +60,7 @@ public abstract class ContentTypeSerializer<V> {
         try {
             return objectMapper.readValue(bytes, itemClass);
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw ExceptionTools.checkedToRuntime(e);
         }
     }
 
@@ -71,7 +72,7 @@ public abstract class ContentTypeSerializer<V> {
         try {
             return objectMapper.readValue(bytes, listTypeReference);
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw ExceptionTools.checkedToRuntime(e);
         }
     }
 

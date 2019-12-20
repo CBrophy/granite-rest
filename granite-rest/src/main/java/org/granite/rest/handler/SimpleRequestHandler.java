@@ -2,6 +2,7 @@ package org.granite.rest.handler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,7 +44,7 @@ public abstract class SimpleRequestHandler<V> implements RequestHandler {
     contentTypeSerializers = builder.build();
   }
 
-  protected abstract Class<V> getItemClass();
+  protected abstract TypeReference<V> getItemClass();
 
   protected JsonSerializer<V> getDefaultSerializer() {
     return defaultSerializer;
