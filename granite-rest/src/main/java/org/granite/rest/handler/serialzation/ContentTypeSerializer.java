@@ -36,7 +36,7 @@ public abstract class ContentTypeSerializer<V> {
         try {
             return objectMapper.writeValueAsBytes(item);
         } catch (JsonProcessingException e) {
-            throw Throwables.propagate(e);
+            throw ExceptionTools.checkedToRuntime(e);
         }
     }
 
@@ -48,7 +48,7 @@ public abstract class ContentTypeSerializer<V> {
         try {
             return objectMapper.writeValueAsBytes(items);
         } catch (JsonProcessingException e) {
-            throw Throwables.propagate(e);
+            throw ExceptionTools.checkedToRuntime(e);
         }
     }
 
