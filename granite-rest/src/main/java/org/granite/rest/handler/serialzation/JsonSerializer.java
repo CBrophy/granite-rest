@@ -19,6 +19,7 @@ public class JsonSerializer<V> extends ContentTypeSerializer<V> {
         module.addSerializer(LocalDateTime.class, new LocalDateTimeStringSerializer());
         module.addDeserializer(LocalDate.class, new LocalDateStringDeserializer());
         module.addDeserializer(LocalDateTime.class, new LocalDateTimeStringDeserializer());
+        objectMapper.registerModule(module);
         return objectMapper;
     }
 
