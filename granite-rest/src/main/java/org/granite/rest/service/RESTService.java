@@ -13,6 +13,7 @@ import io.netty.handler.logging.LoggingHandler;
 import java.time.Clock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.granite.base.ExceptionTools;
 import org.granite.log.LogTools;
 
 public class RESTService {
@@ -65,7 +66,7 @@ public class RESTService {
 
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
-            throw Throwables.propagate(e);
+            throw ExceptionTools.checkedToRuntime(e);
         } finally {
             parentGroup.shutdownGracefully();
             childGroup.shutdownGracefully();

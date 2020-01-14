@@ -1,17 +1,19 @@
 package org.granite.rest.service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 
 import com.google.common.base.Throwables;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
 import java.util.function.Function;
 import javax.net.ssl.SSLException;
 import org.granite.log.LogTools;
@@ -48,16 +50,18 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx,
-        HttpRequest httpRequest) throws Exception {
+        HttpRequest httpRequest) {
 
         RESTService.incrementRequestCount();
 
-        RESTService.incrementCounter(httpRequest.getMethod().name());
+        RESTService.incrementCounter(httpRequest.method().name());
 
         try {
-            HttpResponse httpResponse = null;
+            HttpResponse httpResponse;
 
             try {
+
+                logRequest(ctx, httpRequest);
 
                 final RequestContext requestContext = new RequestContext(httpRequest);
 
@@ -72,7 +76,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 } else {
 
                     httpResponse = dispatchRequest(
-                        httpRequest.getMethod(),
+                        httpRequest.method(),
                         requestContext,
                         handlerFromContextFunction.apply(requestContext));
 
@@ -82,9 +86,9 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                     RESTService.setLastRequestTime();
                 }
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
 
-                LogTools.error(Throwables.getStackTraceAsString(ignored));
+                LogTools.error(Throwables.getStackTraceAsString(e));
 
                 httpResponse = Response.INTERNAL_ERROR();
 
@@ -94,15 +98,15 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
                 httpResponse = Response.NOT_FOUND();
             }
 
-            if (HttpHeaders.isKeepAlive(httpRequest)) {
-                httpResponse.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            if (HttpUtil.isKeepAlive(httpRequest)) {
+                httpResponse.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             }
 
             if (corsEnabled) {
                 httpResponse.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
             }
 
-            if (HttpHeaders.is100ContinueExpected(httpRequest)) {
+            if (HttpUtil.is100ContinueExpected(httpRequest)) {
                 ctx.writeAndFlush(Response.CONTINUE());
             }
 
@@ -120,15 +124,27 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
 
             RESTService.incrementResponseCount();
 
-            RESTService.incrementCounter(String.valueOf(httpResponse.getStatus()));
+            RESTService.incrementCounter(String.valueOf(httpResponse.status()));
 
             ctx.writeAndFlush(httpResponse);
-        } catch (Exception ignored) {
-            LogTools.error(Throwables.getStackTraceAsString(ignored));
+        } catch (Exception e) {
+            LogTools.error(Throwables.getStackTraceAsString(e));
 
             RESTService.incrementHiddenErrorCount();
         }
 
+    }
+
+    protected void logRequest(
+        ChannelHandlerContext channelHandlerContext,
+        HttpRequest httpRequest) {
+        LogTools.info("{0}\t{1}\t{3}",
+            channelHandlerContext
+                .channel()
+                .remoteAddress(),
+            httpRequest.method().name(),
+            httpRequest.uri()
+            );
     }
 
     private HttpResponse dispatchRequest(
@@ -173,7 +189,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 
         // Log all exceptions except for "invalid ssl cert" exceptions
         if (!(muteSSLErrors && isInvalidSSLException(cause))) {
