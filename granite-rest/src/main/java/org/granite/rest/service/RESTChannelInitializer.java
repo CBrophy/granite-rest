@@ -7,16 +7,16 @@ import io.netty.handler.codec.http.HttpServerCodec;
 
 public abstract class RESTChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    @Override
-    protected void initChannel(final SocketChannel ch) throws Exception {
-        ch.config().setKeepAlive(true);
+  @Override
+  protected void initChannel(final SocketChannel ch) throws Exception {
+    ch.config().setKeepAlive(true);
 
-        ch
-            .pipeline()
-            .addLast(new HttpServerCodec())
-            .addLast(new HttpObjectAggregator(1048576))
-            .addLast(getInboundRequestHandlerInstance());
-    }
+    ch
+        .pipeline()
+        .addLast(new HttpServerCodec())
+        .addLast(new HttpObjectAggregator(1048576))
+        .addLast(getInboundRequestHandlerInstance());
+  }
 
-    protected abstract InboundRequestHandler getInboundRequestHandlerInstance();
+  protected abstract InboundRequestHandler getInboundRequestHandlerInstance();
 }

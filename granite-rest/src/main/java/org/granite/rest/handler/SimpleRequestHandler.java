@@ -154,7 +154,7 @@ public abstract class SimpleRequestHandler<V> implements RequestHandler {
   @Override
   public boolean isHealthCheck(RequestContext requestContext) {
     for (String pathPart : requestContext.getRequestPath().reverse()) {
-      if("health-check".equalsIgnoreCase(pathPart)) {
+      if ("health-check".equalsIgnoreCase(pathPart)) {
         return true;
       }
     }

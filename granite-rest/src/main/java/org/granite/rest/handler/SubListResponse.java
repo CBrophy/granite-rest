@@ -4,19 +4,19 @@ import java.util.List;
 
 public class SubListResponse<V> {
 
-    private final int totalCount;
-    private final List<V> responseValues;
+  private final int totalCount;
+  private final List<V> responseValues;
 
-    public SubListResponse(int totalCount, List<V> responseValues) {
-        this.totalCount = totalCount;
-        this.responseValues = responseValues;
-    }
+  public SubListResponse(int totalCount, List<V> responseValues) {
+    this.totalCount = totalCount;
+    this.responseValues = responseValues;
+  }
 
-    public int getTotalCount() {
-        return totalCount;
-    }
+  public int getTotalCount() {
+    return totalCount;
+  }
 
-    public List<V> getResponseValues() {
-        return responseValues;
-    }
+  public List<V> getResponseValues() {
+    return responseValues;
+  }
 }
