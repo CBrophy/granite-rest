@@ -137,7 +137,7 @@ public class InboundRequestHandler extends SimpleChannelInboundHandler<HttpReque
   protected void logRequest(
       ChannelHandlerContext channelHandlerContext,
       HttpRequest httpRequest) {
-    LogTools.info("{0}\t{1}\t{3}",
+    LogTools.info("{0}\t{1}\t{2}",
         channelHandlerContext
             .channel()
             .remoteAddress(),
